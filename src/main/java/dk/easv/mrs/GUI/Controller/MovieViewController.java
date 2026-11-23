@@ -1,0 +1,106 @@
+package dk.easv.mrs.GUI.Controller;
+
+import dk.easv.mrs.BE.Movie;
+import dk.easv.mrs.GUI.Model.MovieModel;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+
+import java.net.URL;
+import java.util.ResourceBundle;
+
+public class MovieViewController implements Initializable {
+
+
+    @FXML
+    private TextField txtMovieSearch, txtMovieYear, txtMovieTitle;
+
+    public ListView<Movie> lstMovies;
+
+    private MovieModel movieModel;
+
+    public MovieViewController()  {
+
+        try {
+            movieModel = new MovieModel();
+        } catch (Exception e) {
+            displayError(e);
+            e.printStackTrace();
+        }
+    }
+
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle)
+    {
+        lstMovies.setItems(movieModel.getObservableMovies());
+
+        txtMovieSearch.textProperty().addListener((observableValue, oldValue, newValue) -> {
+            try {
+                movieModel.searchMovie(newValue);
+            } catch (Exception e) {
+                displayError(e);
+                e.printStackTrace();
+            }
+        });
+
+    }
+
+    private void displayError(Throwable t)
+    {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Something went wrong");
+        alert.setHeaderText(t.getMessage());
+        alert.showAndWait();
+    }
+
+    public Movie btnHandleClick(ActionEvent actionEvent) throws Exception {
+
+        // get user movie data from UI
+        String title = txtMovieTitle.getText();
+        int year = Integer.parseInt(txtMovieYear.getText());
+
+        // new movie object
+        Movie newMovie = new Movie(-1, year, title);
+
+        // call model to create the movie in the dal
+        return movieModel.createMovie(newMovie);
+    }
+
+    public void btnHandleDelete(ActionEvent actionEvent) throws Exception {
+        Movie selectedMovie = lstMovies.getSelectionModel().getSelectedItem();
+
+        if (selectedMovie != null) {
+
+            // update movie based on textfield inputs from user
+            selectedMovie.setTitle(txtMovieTitle.getText());
+            selectedMovie.setYear(Integer.parseInt(txtMovieYear.getText()));
+
+            // Update movie in DAL layer (through the layers)
+            movieModel.updateMovie(selectedMovie);
+
+            // ask controls to refresh their content
+            lstMovies.refresh();
+        }
+    }
+
+    public void btnHandleUpdate(ActionEvent actionEvent) throws Exception {
+        Movie selectedMovie = lstMovies.getSelectionModel().getSelectedItem();
+
+        if (selectedMovie != null) {
+
+            // update movie based on textfield inputs from user
+            selectedMovie.setTitle(txtMovieTitle.getText());
+            selectedMovie.setYear(Integer.parseInt(txtMovieYear.getText()));
+
+            // Update movie in DAL layer (through the layers)
+            movieModel.updateMovie(selectedMovie);
+
+            // ask controls to refresh their content
+            lstMovies.refresh();
+        }
+    }
+}
